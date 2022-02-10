@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"math/rand"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -29,8 +31,8 @@ var intToColor = []string{
 
 func readMessage(conn net.Conn, message chan string) (string, error) {
 	for {
-		buffer := make([]byte, 1024)
-		length, err := conn.Read(buffer)
+		reader := bufio.NewReader(conn)
+		msg, err := reader.ReadString('\n')
 		if err != nil {
 			return "", err
 		}
@@ -38,17 +40,22 @@ func readMessage(conn net.Conn, message chan string) (string, error) {
 		name := conn.LocalAddr().String()
 		_, ok := nameToColor[name]
 		if !ok {
+			rand.Seed(time.Now().UnixNano())
 			nameToColor[name] = intToColor[rand.Intn(8)]
 		}
 		color := nameToColor[name]
 
-		msg := strings.TrimSpace(string(buffer[:length]))
-		message <- (fmt.Sprintf("[%s](fg:%s)", msg, color))
+		msg = strings.TrimSpace(msg)
+		if msg != "1" {
+			message <- (fmt.Sprintf("[%s](fg:%s)", msg, color))
+		}
 	}
 }
 
 func writeMessage(conn net.Conn, message string) error {
-	_, err := conn.Write([]byte(message))
+	writer := bufio.NewWriter(conn)
+	_, err := writer.WriteString(message + "\n")
+	writer.Flush()
 	if err != nil {
 		fmt.Println("Error writing to server:", err.Error())
 		return err
@@ -57,12 +64,11 @@ func writeMessage(conn net.Conn, message string) error {
 }
 
 func main() {
-	if len(os.Args) != 3 {
-		fmt.Println("Usage: client <server-address> <username>")
+	if len(os.Args) != 2 {
+		fmt.Println("Usage: client <server-address>")
 		os.Exit(1)
 	}
 	serverAddress := os.Args[1]
-	username := os.Args[2]
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
@@ -117,7 +123,7 @@ func main() {
 					ui.Render(sendMessageBox)
 				case e.ID == "<Enter>" && len(sendMessageBox.Text) > 0:
 					receivedMessageList.Rows = append(receivedMessageList.Rows, fmt.Sprintf("[You: %s](fg:magenta)", sendMessageBox.Text))
-					writeMessage(conn, username+": "+sendMessageBox.Text)
+					writeMessage(conn, sendMessageBox.Text)
 					sendMessageBox.Text = ""
 					receivedMessageList.ScrollBottom()
 					ui.Render(receivedMessageList)
