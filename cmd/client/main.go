@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 	"strings"
@@ -13,6 +14,18 @@ import (
 )
 
 var wg sync.WaitGroup
+var nameToColor = make(map[string]string)
+var intToColor = []string{
+	"red",
+	"blue",
+	"black",
+	"cyan",
+	"yellow",
+	"white",
+	"clear",
+	"green",
+	"magenta",
+}
 
 func readMessage(conn net.Conn, message chan string) (string, error) {
 	for {
@@ -21,7 +34,16 @@ func readMessage(conn net.Conn, message chan string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		message <- (strings.TrimSpace(string(buffer[:length])))
+
+		name := conn.RemoteAddr().String()
+		_, ok := nameToColor[name]
+		if !ok {
+			nameToColor[name] = intToColor[rand.Intn(8)]
+		}
+		color := nameToColor[name]
+
+		msg := strings.TrimSpace(string(buffer[:length]))
+		message <- (fmt.Sprintf("[%s](fg:%s)", msg, color))
 	}
 }
 
@@ -94,9 +116,7 @@ func main() {
 					sendMessageBox.Text += " "
 					ui.Render(sendMessageBox)
 				case e.ID == "<Enter>" && len(sendMessageBox.Text) > 0:
-
-					receivedMessageList.Rows = append(receivedMessageList.Rows, "You: "+sendMessageBox.Text)
-
+					receivedMessageList.Rows = append(receivedMessageList.Rows, fmt.Sprintf("[You: %s](fg:magenta)", sendMessageBox.Text))
 					writeMessage(conn, username+": "+sendMessageBox.Text)
 					sendMessageBox.Text = ""
 					receivedMessageList.ScrollBottom()
