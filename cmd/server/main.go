@@ -15,9 +15,7 @@ func init() {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-
 	for {
-
 		conns[conn.RemoteAddr().String()] = conn
 
 		fmt.Println(conn.RemoteAddr().String())
@@ -30,14 +28,13 @@ func handleConnection(conn net.Conn) {
 		if len(msgFormat) != 2 {
 			fmt.Println("Invalid message format")
 			return
-		} 
+		}
 
 		for _, c := range conns {
 			if c.RemoteAddr().String() != conn.RemoteAddr().String() {
 				c.Write([]byte(msgFormat[0] + ":" + msgFormat[1]))
 			}
 		}
-
 	}
 }
 
@@ -46,7 +43,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
+	defer ln.Close()
 	fmt.Println("🚀 Listening on port 8080 🚀")
 
 	for {
@@ -54,10 +51,6 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-
 		go handleConnection(conn)
-
 	}
-
-	defer ln.Close()
 }
