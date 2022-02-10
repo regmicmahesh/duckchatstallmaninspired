@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"strings"
 	"sync"
-	"os"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -14,9 +14,7 @@ import (
 
 var wg sync.WaitGroup
 
-
 func readMessage(conn net.Conn, message chan string) (string, error) {
-
 	for {
 		buffer := make([]byte, 1024)
 		length, err := conn.Read(buffer)
@@ -37,36 +35,31 @@ func writeMessage(conn net.Conn, message string) error {
 }
 
 func main() {
-
 	if len(os.Args) != 3 {
 		fmt.Println("Usage: client <server-address> <username>")
 		os.Exit(1)
 	}
-	
 	serverAddress := os.Args[1]
 	username := os.Args[2]
-
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
-	conn, _ := net.Dial("tcp",serverAddress)
-	defer conn.Close()
 	defer ui.Close()
-
 	Mx, My := ui.TerminalDimensions()
+
+	conn, _ := net.Dial("tcp", serverAddress)
+	defer conn.Close()
 
 	receivedMessageList := widgets.NewList()
 	receivedMessageList.Title = "List"
 	receivedMessageList.Rows = []string{
-		"[+] Connected to server [+]" ,
-		}
+		"[+] Connected to server [+]",
+	}
 	receivedMessageList.TextStyle = ui.NewStyle(ui.ColorYellow)
 	receivedMessageList.WrapText = false
-	receivedMessageList.SetRect(0, 0, Mx, My - 3)
+	receivedMessageList.SetRect(0, 0, Mx, My-3)
 	ui.Render(receivedMessageList)
-
-
 
 	sendMessageBox := widgets.NewParagraph()
 	sendMessageBox.Text = ""
@@ -74,18 +67,16 @@ func main() {
 	ui.Render(sendMessageBox)
 
 	msg := make(chan string)
-
 	go readMessage(conn, msg)
 
 	uiEvents := ui.PollEvents()
-	for {
-		select{
 
+	for {
+		select {
 		case recievedMsg := <-msg:
 			receivedMessageList.Rows = append(receivedMessageList.Rows, recievedMsg)
 			receivedMessageList.ScrollBottom()
 			ui.Render(receivedMessageList)
-
 
 		case e := <-uiEvents:
 			switch e.Type {
@@ -104,7 +95,7 @@ func main() {
 					ui.Render(sendMessageBox)
 				case e.ID == "<Enter>" && len(sendMessageBox.Text) > 0:
 
-					receivedMessageList.Rows = append(receivedMessageList.Rows, "You: " + sendMessageBox.Text)
+					receivedMessageList.Rows = append(receivedMessageList.Rows, "You: "+sendMessageBox.Text)
 
 					writeMessage(conn, username+": "+sendMessageBox.Text)
 					sendMessageBox.Text = ""
@@ -114,16 +105,7 @@ func main() {
 				default:
 					sendMessageBox.Text += e.ID
 				}
-
-
 			}
 		}
-
-
-
-
 	}
-
-
-
 }
