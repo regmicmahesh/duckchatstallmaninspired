@@ -35,7 +35,7 @@ func readMessage(conn net.Conn, message chan string) (string, error) {
 			return "", err
 		}
 
-		name := conn.RemoteAddr().String()
+		name := conn.LocalAddr().String()
 		_, ok := nameToColor[name]
 		if !ok {
 			nameToColor[name] = intToColor[rand.Intn(8)]
