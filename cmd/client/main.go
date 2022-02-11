@@ -85,6 +85,7 @@ func main() {
 
 	receivedMessageList := widgets.NewList()
 	receivedMessageList.Title = "Messages"
+	receivedMessageList.TitleStyle.Fg = ui.ColorMagenta
 	receivedMessageList.Rows = []string{
 		"[+] Connected to server [+] ",
 	}
