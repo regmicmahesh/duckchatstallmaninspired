@@ -3,58 +3,18 @@ package server
 import (
 	"bufio"
 	"fmt"
-	"log"
-	"math/rand"
 	"net"
 	"strings"
 	"time"
 
-	i "github.com/regmicmahesh/term-chat/internal/interfaces"
+	cl "github.com/regmicmahesh/term-chat/internal/client"
+	i "github.com/regmicmahesh/term-chat/internal/common"
+	"github.com/regmicmahesh/term-chat/internal/services"
 )
 
-   
 type Server struct {
 	Clients        []i.ClientInterface
 	CommandHandler i.CommandHandlerInterface
-}
-
-type Client struct {
-	username string
-	conn     net.Conn
-	ipAddr   string
-}
-
-
-type Context struct {
-	Server Server
-	Client Client
-	args   map[string]string
-}
-
-func NewClient(conn net.Conn, ipAddr string) i.ClientInterface {
-	randomUsername := rand.Intn(len(USERNAMES))
-	username := USERNAMES[randomUsername]
-	return &Client{
-		conn:     conn,
-		ipAddr:   ipAddr,
-		username: username,
-	}
-}
-
-func (c *Client) GetUsername() string {
-	return c.username
-}
-
-func (c *Client) SetUsername(username string) {
-	c.username = username
-}
-
-func (c *Client) GetConnection() net.Conn {
-	return c.conn
-}
-
-func (c *Client) GetIPAddr() string {
-	return c.ipAddr
 }
 
 func NewServer() *Server {
@@ -72,32 +32,12 @@ func (s *Server) GetNumberOfUsers() int {
 	return len(s.Clients)
 }
 
-
-func msgCreator(username string, message string) string {
-	return fmt.Sprintf("%s: %s", username, message)
-}
-
 func (s *Server) broadcastMessage(sender i.ClientInterface, message string) {
-	for _, client := range s.Clients {
-		fmt.Println("Currently broadcasting to:", client.GetIPAddr())
-		if client != sender {
-			writer := bufio.NewWriter(client.GetConnection())
-			_, err := writer.WriteString(msgCreator(sender.GetUsername(), message) + "\n")
-			writer.Flush()
-			if err != nil {
-				log.Println("Error writing to client:", err)
-			}
-
-		}
-	}
+	services.BroadcastMessage(sender.GetUsername(), message, s.Clients)
 }
 
 func (s *Server) BroadcastServerMessage(message string) {
-	for _, client := range s.Clients {
-		writer := bufio.NewWriter(client.GetConnection())
-		writer.WriteString(msgCreator("Server", message) + "\n")
-		writer.Flush()
-	}
+	services.BroadcastServerMessage(message, s.Clients)
 }
 
 func (s *Server) GetClientByUsername(username string) i.ClientInterface {
@@ -121,7 +61,7 @@ func (s *Server) getClientByIP(ipAddr string) i.ClientInterface {
 
 func (s *Server) RemoveClient(client i.ClientInterface) {
 	for i, c := range s.Clients {
-		if c == client.(*Client) {
+		if c == client {
 			s.Clients = append(s.Clients[:i], s.Clients[i+1:]...)
 			return
 		}
@@ -150,14 +90,22 @@ func (s *Server) UpdateUserStatus() {
 	}
 }
 
-func (s *Server) AddClient(client interface{}) {
-	s.Clients = append(s.Clients, client.(*Client))
+func (s *Server) AddClient(client i.ClientInterface) {
+	s.Clients = append(s.Clients, client)
 }
 
 func (s *Server) SendServerPrivateMessage(message string, client i.ClientInterface) {
-	writer := bufio.NewWriter(client.GetConnection())
-	writer.WriteString(msgCreator("Server", message) + "\n")
-	writer.Flush()
+	services.PrivateServerMessage(message, client)
+}
+
+func readMessage(conn net.Conn) (string, error) {
+	reader := bufio.NewReader(conn)
+	message, err := reader.ReadString('\n')
+
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(message), nil
 }
 
 func (s *Server) HandleConn(conn net.Conn) {
@@ -166,18 +114,16 @@ func (s *Server) HandleConn(conn net.Conn) {
 	ipAddr := conn.RemoteAddr().String()
 
 	for {
-		//TODO: Refactor this to return a string.
-		reader := bufio.NewReader(conn)
-		message, err := reader.ReadString('\n')
-		message = strings.TrimSpace(message)
+		message, err := readMessage(conn)
 		if err != nil {
 			return
 		}
 
 		client := s.getClientByIP(ipAddr)
 		if client == nil {
-			client = NewClient(conn, ipAddr)
-			s.SendServerPrivateMessage("You are not in the chat. Enter /join server to join the chat.", client)
+			client = cl.NewClient(conn, ipAddr)
+			s.SendServerPrivateMessage(fmt.Sprintf("%s connected.", client.GetUsername()), client)
+			s.CommandHandler.Handle(client, "/join")
 		}
 		if len(message) == 0 {
 			s.SendServerPrivateMessage("Please enter a message.", client)
@@ -193,4 +139,3 @@ func (s *Server) HandleConn(conn net.Conn) {
 
 	}
 }
-

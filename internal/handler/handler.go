@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	i "github.com/regmicmahesh/term-chat/internal/interfaces"
+	i "github.com/regmicmahesh/term-chat/internal/common"
 )
 
 

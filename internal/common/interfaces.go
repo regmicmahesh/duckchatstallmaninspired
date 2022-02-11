@@ -1,4 +1,4 @@
-package interfaces
+package common
 
 import "net"
 
@@ -27,7 +27,7 @@ type ServerInterface interface {
 	RemoveClient(client ClientInterface)
 	SendServerPrivateMessage(message string, client ClientInterface)
 	RegisterCommandHandler(c CommandHandlerInterface)
-	AddClient(client interface{})
+	AddClient(client ClientInterface)
 }
 
 type ClientInterface interface {
