@@ -5,7 +5,7 @@ server:
 	@go run ./cmd/server
 
 client:
-	@go run ./cmd/client localhost:8080 testkumar
+	@go run ./cmd/client localhost:8080
 
 build: build-server build-client
 

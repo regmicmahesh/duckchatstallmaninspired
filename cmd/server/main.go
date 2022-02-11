@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/regmicmahesh/term-chat/internal/handler"
 	"github.com/regmicmahesh/term-chat/internal/server"
 )
 
@@ -13,7 +14,11 @@ func main() {
 		panic(err)
 	}
 	defer ln.Close()
-	server := server.NewServer()
+
+	srv := server.NewServer()
+
+
+	handler.NewCommandHandler(srv)
 
 	fmt.Println("🚀 Listening on port 8080 🚀")
 
@@ -23,9 +28,9 @@ func main() {
 			panic(err)
 		}
 
-		go server.UpdateUserStatus()
+		go srv.UpdateUserStatus()
 
-		go server.HandleConn(conn)
+		go srv.HandleConn(conn)
 
 	}
 
