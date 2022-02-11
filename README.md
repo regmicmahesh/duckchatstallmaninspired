@@ -13,11 +13,12 @@ This application runs completely on top of TCP , and we don't bother with high l
 
 We run a simple protocol that is your message ends with `\n`. How simple is that?
 
-For now, there are few commands such as 
+For now, there are few commands such as
 
-| Command | Description | Example | 
-| --- | --- | --- |
-| `/join` | Join? | `/join` | 
-| `/quit` | Quit? | `/quit` | 
-| `/whisper` | DM? | `/whisper mahesh k xa yar` | 
-| `/nick` | Change Nickname? | `/nick mahesh` |
+| Command    | Description       | Example                    |
+| ---------- | ----------------- | -------------------------- |
+| `/join`    | Join?             | `/join`                    |
+| `/quit`    | Quit?             | `/quit`                    |
+| `/whisper` | DM?               | `/whisper mahesh k xa yar` |
+| `/nick`    | Change Nickname?  | `/nick mahesh`             |
+| `/users`   | Connected Users ? | `/users`                   |
