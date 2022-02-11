@@ -166,10 +166,10 @@ func (s *Server) handleCommand(client *Client, cmd string, arg string) {
 		client = NewClient(client.conn, client.ipAddr)
 		s.Clients = append(s.Clients, client)
 		s.BroadcastServerMessage(fmt.Sprintf("%s joined the chat", client.username))
-  case "/users":
-    users := len(s.Clients)
-    s.BroadcastServerMessage(fmt.Sprintf("connected users :%d" , users))
-    
+	case "/users":
+		users := len(s.Clients)
+		s.BroadcastServerMessage(fmt.Sprintf("connected users :%d", users))
+
 	case "/quit":
 		s.BroadcastServerMessage(fmt.Sprintf("%s left the chat", client.username))
 		s.RemoveClient(client)
