@@ -3,7 +3,7 @@
 </p>
 <h1 align="center">DuckChat - Stallman Inspired </h1>
 
-[![Latest Release](https://github.com/regmicmahesh/duckchatstallmaninspired/actions/workflows/pull-request-merge.yml/badge.svg?branch=main)](https://github.com/regmicmahesh/duckchatstallmaninspired/actions/workflows/pull-request-merge.yml)
+[![GitHub go.mod Go version of a Go module](https://img.shields.io/github/go-mod/go-version/gomods/athens.svg)]() [![Latest Release](https://github.com/regmicmahesh/duckchatstallmaninspired/actions/workflows/pull-request-merge.yml/badge.svg?branch=main)](https://github.com/regmicmahesh/duckchatstallmaninspired/actions/workflows/pull-request-merge.yml) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/regmicmahesh/duckchatstallmaninspired/graphs/commit-activity)
 
 ## Demo of current release.
 
