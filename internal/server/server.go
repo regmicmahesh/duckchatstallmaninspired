@@ -168,7 +168,7 @@ func (s *Server) handleCommand(client *Client, cmd string, arg string) {
 		s.BroadcastServerMessage(fmt.Sprintf("%s joined the chat", client.username))
 	case "/users":
 		users := len(s.Clients)
-		s.BroadcastServerMessage(fmt.Sprintf("connected users :%d", users))
+		s.SendServerPrivateMessage(fmt.Sprintf("connected users :%d", users) , client)
 
 	case "/quit":
 		s.BroadcastServerMessage(fmt.Sprintf("%s left the chat", client.username))
