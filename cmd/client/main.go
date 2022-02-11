@@ -141,9 +141,18 @@ func main() {
 					}
 				default:
 					if len(e.ID) != 1 && e.ID[0] == '<' {
+						// Do nothing
 					} else {
 						sendMessageBox.Text += e.ID
 					}
+				}
+
+			case ui.MouseEvent:
+				switch e.ID {
+				case "<MouseWheelUp>":
+					receivedMessageList.ScrollUp()
+				case "<MouseWheelDown>":
+					receivedMessageList.ScrollDown()
 				}
 
 			case ui.ResizeEvent:
