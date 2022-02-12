@@ -8,7 +8,7 @@ import (
 	"time"
 
 	cl "github.com/regmicmahesh/term-chat/internal/client"
-	i "github.com/regmicmahesh/term-chat/internal/common"
+	"github.com/regmicmahesh/term-chat/internal/common"
 	"github.com/regmicmahesh/term-chat/internal/services"
 	"github.com/regmicmahesh/term-chat/internal/utils"
 )
@@ -21,14 +21,14 @@ type User struct {
 }
 
 type Server struct {
-	Clients         []i.ClientInterface
-	CommandHandler  i.CommandHandlerInterface
+	Clients         []common.ClientInterface
+	CommandHandler  common.CommandHandlerInterface
 	RegisteredUsers []*User
 }
 
 func NewServer() *Server {
 	return &Server{
-		Clients:        make([]i.ClientInterface, 0),
+		Clients:        make([]common.ClientInterface, 0),
 		CommandHandler: nil,
 	}
 }
@@ -59,7 +59,7 @@ func (s *Server) RegisterUser(username string, password string) error {
 	return nil
 }
 
-func (s *Server) RegisterCommandHandler(c i.CommandHandlerInterface) {
+func (s *Server) RegisterCommandHandler(c common.CommandHandlerInterface) {
 	s.CommandHandler = c.InitCommandHandler()
 }
 
@@ -67,15 +67,23 @@ func (s *Server) GetNumberOfUsers() int {
 	return len(s.Clients)
 }
 
-func (s *Server) broadcastMessage(sender i.ClientInterface, message string) {
-	services.BroadcastMessage(sender.GetUsername(), message, s.Clients)
+func (s *Server) broadcastMessage(sender common.ClientInterface, message string) {
+	var clients []services.BroadcastableClient = make([]services.BroadcastableClient, 0)
+	for _, client := range s.Clients {
+		clients = append(clients, client)
+	}
+	services.BroadcastMessage(sender.GetUsername(), message, clients)
 }
 
 func (s *Server) BroadcastServerMessage(message string) {
-	services.BroadcastServerMessage(message, s.Clients)
+	var clients []services.BroadcastableClient = make([]services.BroadcastableClient, 0)
+	for _, client := range s.Clients {
+		clients = append(clients, client)
+	}
+	services.BroadcastServerMessage(message, clients)
 }
 
-func (s *Server) GetClientByUsername(username string) i.ClientInterface {
+func (s *Server) GetClientByUsername(username string) common.ClientInterface {
 	for _, client := range s.Clients {
 		if client.GetUsername() == username {
 			return client
@@ -84,7 +92,7 @@ func (s *Server) GetClientByUsername(username string) i.ClientInterface {
 	return nil
 }
 
-func (s *Server) getClientByIP(ipAddr string) i.ClientInterface {
+func (s *Server) getClientByIP(ipAddr string) common.ClientInterface {
 
 	for _, client := range s.Clients {
 		if client.GetIPAddr() == ipAddr {
@@ -94,15 +102,15 @@ func (s *Server) getClientByIP(ipAddr string) i.ClientInterface {
 	return nil
 }
 
-func (s *Server) AddClient(client i.ClientInterface) {
+func (s *Server) AddClient(client common.ClientInterface) {
 	s.Clients = append(s.Clients, client)
 }
 
-func (s *Server) SendServerPrivateMessage(message string, client i.ClientInterface) {
+func (s *Server) SendServerPrivateMessage(message string, client common.ClientInterface) {
 	services.PrivateServerMessage(message, client)
 }
 
-func (s *Server) RemoveClient(client i.ClientInterface) {
+func (s *Server) RemoveClient(client common.ClientInterface) {
 	for i, c := range s.Clients {
 		if c == client {
 			s.Clients = append(s.Clients[:i], s.Clients[i+1:]...)

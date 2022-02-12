@@ -1,6 +1,8 @@
 package common
 
-import "net"
+import (
+	"net"
+)
 
 type Context struct {
 	Server ServerInterface
@@ -35,7 +37,8 @@ type ServerInterface interface {
 
 type ClientInterface interface {
 	GetUsername() string
+	GetConnection() net.Conn
 	SetUsername(username string)
 	GetIPAddr() string
-	GetConnection() net.Conn
 }
+

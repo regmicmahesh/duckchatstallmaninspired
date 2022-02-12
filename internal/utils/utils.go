@@ -15,3 +15,4 @@ func ReadMessage(conn net.Conn) (string, error) {
 	}
 	return strings.TrimSpace(message), nil
 }
+

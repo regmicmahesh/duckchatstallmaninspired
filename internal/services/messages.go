@@ -3,15 +3,19 @@ package services
 import (
 	"bufio"
 	"fmt"
-
-	"github.com/regmicmahesh/term-chat/internal/common"
+	"net"
 )
 
 func msgCreator(username string, message string) string {
 	return fmt.Sprintf("%s: %s\n", username, message)
 }
 
-func BroadcastMessage(sender string, message string, clients []common.ClientInterface) {
+type BroadcastableClient interface {
+	GetUsername() string
+	GetConnection() net.Conn
+}
+
+func BroadcastMessage(sender string, message string, clients []BroadcastableClient) {
 	if sender == "" {
 		return
 	}
@@ -25,10 +29,10 @@ func BroadcastMessage(sender string, message string, clients []common.ClientInte
 	}
 }
 
-func BroadcastServerMessage(message string, clients []common.ClientInterface) {
+func BroadcastServerMessage(message string, clients []BroadcastableClient) {
 	BroadcastMessage("Server", message, clients)
 }
 
-func PrivateServerMessage(message string, client common.ClientInterface) {
-	BroadcastServerMessage(message, []common.ClientInterface{client})
+func PrivateServerMessage(message string, client BroadcastableClient) {
+	BroadcastServerMessage(message, []BroadcastableClient{client})
 }
