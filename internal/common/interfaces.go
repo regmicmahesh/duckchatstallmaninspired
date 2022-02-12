@@ -28,6 +28,9 @@ type ServerInterface interface {
 	SendServerPrivateMessage(message string, client ClientInterface)
 	RegisterCommandHandler(c CommandHandlerInterface)
 	AddClient(client ClientInterface)
+	IsUserRegistered(username string) bool
+	RegisterUser(username string, password string) error
+	IsUserCredentialsValid(string, string) bool
 }
 
 type ClientInterface interface {

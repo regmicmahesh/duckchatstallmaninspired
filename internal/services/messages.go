@@ -12,6 +12,9 @@ func msgCreator(username string, message string) string {
 }
 
 func BroadcastMessage(sender string, message string, clients []common.ClientInterface) {
+	if sender == "" {
+		return
+	}
 	for _, client := range clients {
 		if client.GetUsername() == sender {
 			continue
