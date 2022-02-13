@@ -12,8 +12,15 @@ type Client struct {
 }
 
 func NewClient(conn net.Conn, ipAddr string) *Client {
-	//randomUsername := rand.Intn(len(i.USERNAMES))
-	//username := i.USERNAMES[randomUsername]
+
+	if conn == nil {
+		return nil
+	}
+
+	if ipAddr == "" {
+		return nil
+	}
+
 	return &Client{
 		conn:     conn,
 		ipAddr:   ipAddr,

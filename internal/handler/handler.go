@@ -125,6 +125,11 @@ func HandleChangeNickname(ctx common.Context) {
 		return
 	}
 
+	if ctx.Server.GetClientByUsername(ctx.Get("name")) != nil {
+		ctx.Server.SendServerPrivateMessage(fmt.Sprintf(common.USER_ALREADY_IN_CHAT, ctx.Get("name")), ctx.Client)
+		return
+	}
+
 	ctx.Server.BroadcastServerMessage(fmt.Sprintf(common.CHANGE_USERNAME, ctx.Client.GetUsername(), ctx.Get("name")))
 	ctx.Client.SetUsername(ctx.Get("name"))
 }

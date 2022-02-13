@@ -76,6 +76,7 @@ func (s *Server) broadcastMessage(sender common.ClientInterface, message string)
 }
 
 func (s *Server) BroadcastServerMessage(message string) {
+
 	var clients []services.BroadcastableClient = make([]services.BroadcastableClient, 0)
 	for _, client := range s.Clients {
 		clients = append(clients, client)
@@ -103,6 +104,13 @@ func (s *Server) getClientByIP(ipAddr string) common.ClientInterface {
 }
 
 func (s *Server) AddClient(client common.ClientInterface) {
+
+	for _, c := range s.Clients {
+		if c.GetIPAddr() == client.GetIPAddr() {
+			return
+		}
+	}
+
 	s.Clients = append(s.Clients, client)
 }
 
@@ -155,7 +163,7 @@ func (s *Server) HandleConn(conn net.Conn) {
 		client := s.getClientByIP(ipAddr)
 		if client == nil {
 			client = cl.NewClient(conn, ipAddr)
-			s.SendServerPrivateMessage(fmt.Sprintf("A new user connected. "), client)
+			s.SendServerPrivateMessage(fmt.Sprintf("/join <username> to continue."), client)
 		}
 		if len(message) == 0 {
 			s.SendServerPrivateMessage("Please enter a message.", client)
