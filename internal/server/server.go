@@ -2,29 +2,64 @@ package server
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"net"
-	"strings"
 	"time"
 
 	cl "github.com/regmicmahesh/term-chat/internal/client"
-	i "github.com/regmicmahesh/term-chat/internal/common"
+	"github.com/regmicmahesh/term-chat/internal/common"
 	"github.com/regmicmahesh/term-chat/internal/services"
+	"github.com/regmicmahesh/term-chat/internal/utils"
 )
 
+var UserExistsError = errors.New("User already exists")
+
+type User struct {
+	username string
+	password string
+}
+
 type Server struct {
-	Clients        []i.ClientInterface
-	CommandHandler i.CommandHandlerInterface
+	Clients         []common.ClientInterface
+	CommandHandler  common.CommandHandlerInterface
+	RegisteredUsers []*User
 }
 
 func NewServer() *Server {
 	return &Server{
-		Clients:        make([]i.ClientInterface, 0),
+		Clients:        make([]common.ClientInterface, 0),
 		CommandHandler: nil,
 	}
 }
 
-func (s *Server) RegisterCommandHandler(c i.CommandHandlerInterface) {
+func (s *Server) IsUserCredentialsValid(username string, password string) bool {
+	for _, user := range s.RegisteredUsers {
+		if user.username == username && user.password == password {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Server) IsUserRegistered(username string) bool {
+	for _, user := range s.RegisteredUsers {
+		if user.username == username {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Server) RegisterUser(username string, password string) error {
+	if s.IsUserRegistered(username) {
+		return UserExistsError
+	}
+	s.RegisteredUsers = append(s.RegisteredUsers, &User{username, password})
+	return nil
+}
+
+func (s *Server) RegisterCommandHandler(c common.CommandHandlerInterface) {
 	s.CommandHandler = c.InitCommandHandler()
 }
 
@@ -32,15 +67,24 @@ func (s *Server) GetNumberOfUsers() int {
 	return len(s.Clients)
 }
 
-func (s *Server) broadcastMessage(sender i.ClientInterface, message string) {
-	services.BroadcastMessage(sender.GetUsername(), message, s.Clients)
+func (s *Server) broadcastMessage(sender common.ClientInterface, message string) {
+	var clients []services.BroadcastableClient = make([]services.BroadcastableClient, 0)
+	for _, client := range s.Clients {
+		clients = append(clients, client)
+	}
+	services.BroadcastMessage(sender.GetUsername(), message, clients)
 }
 
 func (s *Server) BroadcastServerMessage(message string) {
-	services.BroadcastServerMessage(message, s.Clients)
+
+	var clients []services.BroadcastableClient = make([]services.BroadcastableClient, 0)
+	for _, client := range s.Clients {
+		clients = append(clients, client)
+	}
+	services.BroadcastServerMessage(message, clients)
 }
 
-func (s *Server) GetClientByUsername(username string) i.ClientInterface {
+func (s *Server) GetClientByUsername(username string) common.ClientInterface {
 	for _, client := range s.Clients {
 		if client.GetUsername() == username {
 			return client
@@ -49,7 +93,7 @@ func (s *Server) GetClientByUsername(username string) i.ClientInterface {
 	return nil
 }
 
-func (s *Server) getClientByIP(ipAddr string) i.ClientInterface {
+func (s *Server) getClientByIP(ipAddr string) common.ClientInterface {
 
 	for _, client := range s.Clients {
 		if client.GetIPAddr() == ipAddr {
@@ -59,7 +103,22 @@ func (s *Server) getClientByIP(ipAddr string) i.ClientInterface {
 	return nil
 }
 
-func (s *Server) RemoveClient(client i.ClientInterface) {
+func (s *Server) AddClient(client common.ClientInterface) {
+
+	for _, c := range s.Clients {
+		if c.GetIPAddr() == client.GetIPAddr() {
+			return
+		}
+	}
+
+	s.Clients = append(s.Clients, client)
+}
+
+func (s *Server) SendServerPrivateMessage(message string, client common.ClientInterface) {
+	services.PrivateServerMessage(message, client)
+}
+
+func (s *Server) RemoveClient(client common.ClientInterface) {
 	for i, c := range s.Clients {
 		if c == client {
 			s.Clients = append(s.Clients[:i], s.Clients[i+1:]...)
@@ -90,31 +149,13 @@ func (s *Server) UpdateUserStatus() {
 	}
 }
 
-func (s *Server) AddClient(client i.ClientInterface) {
-	s.Clients = append(s.Clients, client)
-}
-
-func (s *Server) SendServerPrivateMessage(message string, client i.ClientInterface) {
-	services.PrivateServerMessage(message, client)
-}
-
-func readMessage(conn net.Conn) (string, error) {
-	reader := bufio.NewReader(conn)
-	message, err := reader.ReadString('\n')
-
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(message), nil
-}
-
 func (s *Server) HandleConn(conn net.Conn) {
 	defer conn.Close()
 
 	ipAddr := conn.RemoteAddr().String()
 
 	for {
-		message, err := readMessage(conn)
+		message, err := utils.ReadMessage(conn)
 		if err != nil {
 			return
 		}
@@ -122,8 +163,7 @@ func (s *Server) HandleConn(conn net.Conn) {
 		client := s.getClientByIP(ipAddr)
 		if client == nil {
 			client = cl.NewClient(conn, ipAddr)
-			s.SendServerPrivateMessage(fmt.Sprintf("%s connected.", client.GetUsername()), client)
-			s.CommandHandler.Handle(client, "/join")
+			s.SendServerPrivateMessage(fmt.Sprintf("/join <username> to continue."), client)
 		}
 		if len(message) == 0 {
 			s.SendServerPrivateMessage("Please enter a message.", client)

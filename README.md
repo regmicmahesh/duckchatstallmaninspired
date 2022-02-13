@@ -21,3 +21,6 @@ For now, there are few commands such as
 | `/quit` | Quit? | `/quit` | 
 | `/whisper` | DM? | `/whisper mahesh k xa yar` | 
 | `/nick` | Change Nickname? | `/nick mahesh` |
+| `/users` | Get Number of Users? | `/users` |
+| `/register` | Register User? | `/register mysupersecretpassword` |
+| `/login` | Login User? | `/login mysupersecretpassword` |

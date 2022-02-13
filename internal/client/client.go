@@ -1,25 +1,30 @@
 package client
 
 import (
-	"math/rand"
 	"net"
-
-	i "github.com/regmicmahesh/term-chat/internal/common"
 )
 
 type Client struct {
 	username string
 	conn     net.Conn
 	ipAddr   string
+	password string
 }
 
 func NewClient(conn net.Conn, ipAddr string) *Client {
-	randomUsername := rand.Intn(len(i.USERNAMES))
-	username := i.USERNAMES[randomUsername]
+
+	if conn == nil {
+		return nil
+	}
+
+	if ipAddr == "" {
+		return nil
+	}
+
 	return &Client{
 		conn:     conn,
 		ipAddr:   ipAddr,
-		username: username,
+		username: "",
 	}
 }
 

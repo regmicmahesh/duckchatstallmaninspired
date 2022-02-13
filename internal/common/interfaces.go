@@ -1,6 +1,8 @@
 package common
 
-import "net"
+import (
+	"net"
+)
 
 type Context struct {
 	Server ServerInterface
@@ -28,11 +30,15 @@ type ServerInterface interface {
 	SendServerPrivateMessage(message string, client ClientInterface)
 	RegisterCommandHandler(c CommandHandlerInterface)
 	AddClient(client ClientInterface)
+	IsUserRegistered(username string) bool
+	RegisterUser(username string, password string) error
+	IsUserCredentialsValid(string, string) bool
 }
 
 type ClientInterface interface {
 	GetUsername() string
+	GetConnection() net.Conn
 	SetUsername(username string)
 	GetIPAddr() string
-	GetConnection() net.Conn
 }
+
