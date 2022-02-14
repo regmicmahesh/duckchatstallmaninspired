@@ -72,7 +72,6 @@ func (s *Server) GetUsers() string {
 	return strings.Join(users[:] , ",")
 }
 func (s *Server) GetNumberOfUsers() int {
-	fmt.Printf("%+v\n", s.Clients)
 	return len(s.Clients)
 }
 
