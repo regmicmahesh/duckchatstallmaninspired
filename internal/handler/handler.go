@@ -82,7 +82,8 @@ func (cmdH *CommandHandler) InitCommandHandler() common.CommandHandlerInterface 
 	cmdH.RegisterCommand("^/nick (?P<name>[a-zA-Z0-9]+)$", 1, HandleChangeNickname)
 	cmdH.RegisterCommand("^/quit$", 0, QuitChat)
 	cmdH.RegisterCommand("^/whisper (?P<target>[a-zA-Z0-9]+) (?P<message>.+)$", 2, HandleWhisper)
-	cmdH.RegisterCommand("^/users$", 0, GetNumberOfUsers)
+	cmdH.RegisterCommand("^/count", 0, GetNumberOfUsers)
+	cmdH.RegisterCommand("^/users" , 0, GetUsers)
 	cmdH.RegisterCommand("^/whois (?P<target>[a-zA-Z0-9]+)$", 1, Whois)
 	cmdH.RegisterCommand("^/register (?P<password>[a-zA-Z0-9]+)$", 1, HandleRegister)
 	cmdH.RegisterCommand("^/login (?P<user>[a-zA-Z0-9]+) (?P<password>[a-zA-Z0-9]+)$", 2, HandleLogin)
@@ -156,6 +157,11 @@ func HandleWhisper(ctx common.Context) {
 
 func GetNumberOfUsers(ctx common.Context) {
 	ctx.Server.SendServerPrivateMessage(fmt.Sprintf(common.USER_COUNT, ctx.Server.GetNumberOfUsers()), ctx.Client)
+}
+
+func GetUsers(ctx common.Context) {
+	fmt.Println(ctx.Server.GetNumberOfUsers())
+	ctx.Server.SendServerPrivateMessage(fmt.Sprintf(common.USERS_LIST, ctx.Server.GetUsers()), ctx.Client)
 }
 
 func Whois(ctx common.Context) {

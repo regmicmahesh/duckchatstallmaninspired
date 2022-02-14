@@ -24,6 +24,7 @@ type ServerInterface interface {
 	BroadcastServerMessage(message string)
 	GetClientByUsername(username string) ClientInterface
 	GetNumberOfUsers() int
+	GetUsers() string 
 	UpdateUserStatus()
 	HandleConn(conn net.Conn)
 	RemoveClient(client ClientInterface)
