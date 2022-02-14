@@ -160,7 +160,6 @@ func GetNumberOfUsers(ctx common.Context) {
 }
 
 func GetUsers(ctx common.Context) {
-	fmt.Println(ctx.Server.GetNumberOfUsers())
 	ctx.Server.SendServerPrivateMessage(fmt.Sprintf(common.USERS_LIST, ctx.Server.GetUsers()), ctx.Client)
 }
 
