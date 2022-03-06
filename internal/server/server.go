@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	cl "github.com/regmicmahesh/term-chat/internal/client"
@@ -63,6 +64,13 @@ func (s *Server) RegisterCommandHandler(c common.CommandHandlerInterface) {
 	s.CommandHandler = c.InitCommandHandler()
 }
 
+func (s *Server) GetUsers() string {
+	users := []string{}
+	for _, client := range s.Clients {
+		users = append(users , client.GetUsername())
+	}
+	return strings.Join(users[:] , ",")
+}
 func (s *Server) GetNumberOfUsers() int {
 	return len(s.Clients)
 }
